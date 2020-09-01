@@ -1,0 +1,1014 @@
+var pokemon = require("./../../db/pokemon.js");
+const Discord = require("discord.js")
+const User = require('../../models/user.js');
+const hastebin = require("hastebin-gen");
+const Guild = require('../../models/guild.js')
+const Pokedex = require('pokedex-promise-v2');
+const P = new Pokedex();
+const react = ["⏪", "◀️", "▶️", "⏩"]
+const ind = 0;
+const fs = require("fs");
+const legends = fs.readFileSync("./db/legends.txt").toString().trim().split("\n").map(r => r.trim());
+const mythics = fs.readFileSync("./db/mythics.txt").toString().trim().split("\n").map(r => r.trim());
+const galarians = fs.readFileSync("./db/galarians.txt").toString().trim().split("\n").map(r => r.trim());
+const alolans = fs.readFileSync("./db/alolans.txt").toString().trim().split("\n").map(r => r.trim());
+const ub = fs.readFileSync("./db/ub.txt").toString().trim().split("\n").map(r => r.trim());
+var forms = require("./../../db/forms.js");
+var mega = require("./../../db/mega.js");
+var shadow = require("./../../db/shadow.js");
+var megashiny = require("./../../db/mega-shiny.js");
+var primal = require("./../../db/primal.js");
+var shiny = require('./../../db/shiny.js')
+
+module.exports = {
+  name: "pokemon",
+  category: "Information",
+  description: "Check your pokémons.",
+  usage: "pokemon [page number]",
+  aliases: ["p"],
+  run: async(client, message, args) => {
+    let nguild = await Guild.findOne({ id: message.guild.id });
+    let user = await User.findOne({id: message.author.id});
+    if(!user) {
+      return client.embed(message.channel, {
+      name: ` | You must pick your starter pokémon with ${nguild.prefix}start before using this command.`,
+      av: message.author.avatarURL({format: "png", dynamic: true})
+    });
+  };
+    
+                console.log(user.pokemons[user.selected - 1]);
+
+/*if(message.content.includes("--name") || message.content.includes("--n")){
+  let name = args[1].toLowerCase()
+  let dir = ``;
+  for (var i = 0; i < user.pokemons.length; i++) {
+    if (name == user.pokemons[i].name.toLowerCase()) {
+      var p = ``
+      p +=`${user.pokemons[i].name} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%\n`
+      dir += p
+    }
+  }Name
+  if(dir == ""){
+    dir += "Nothing to show"
+  }
+  var txt = `${dir}`
+  let embed = new Discord.MessageEmbed()
+  .setTitle(`${message.author.tag}'s filtered pokemon:`)
+  .setColor('#05f5fc')
+  .setDescription(txt)
+  return message.channel.send(embed)
+}*/
+
+if(message.content.includes(`${nguild.prefix}p add`) || message.content.includes(`${nguild.prefix}pokemon add`)){
+  return
+}
+    
+if(message.content.includes("--galarian") || message.content.includes("--g")){
+  let txt = user.pokemons.map((r, i) => {
+  r.num = i + 1;
+  return r;
+  }).filter(r => galarians.some(d => {
+  let nameinDB = d.toLowerCase();
+  let givenName = r.name.replace(/ /g, "-").toLowerCase()
+  if(givenName === nameinDB) return true;
+  }));
+  if(Number(args[0])){
+    let chunks = chunk(txt, 20);
+    let index = args[0]-1;
+    let ix = (( index % chunks.length) + chunks.length) % chunks.length;
+    const embed = new Discord.MessageEmbed();
+    let actualpage = index + 1
+    index = ((index % chunks.length) + chunks.length) % chunks.length;
+    if(args[0] > chunks.length){
+      embed.setDescription(`Nothing to show`)
+      embed.setFooter(`Showing ${args[0]}-${chunks.length} of ${txt.length} pokémon matching this search.`);
+    }
+    else{
+      embed.setDescription(chunks[index].map((item, i) => `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${item.num} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`).join('\n'))
+      embed.setFooter(`Showing ${index + 1}-${chunks.length} of ${txt.length} pokémon matching this search.`);
+    }
+    embed.setTitle(`${message.author.tag}'s pokemon:`)
+    embed.setColor(`#05f5fc`)
+    return message.channel.send(embed);
+    }
+  else{
+    let chunks = chunk(txt, 20);
+    const embed = new Discord.MessageEmbed();
+    if(args[0] > txt.length){
+      embed.setDescription(`Nothing to show`)
+      embed.setFooter(`Showing 1-1 of ${txt.length} pokémon matching this search.`);
+    }
+    else{
+      embed.setDescription(chunks[0].map((item, i) => `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${item.num} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`).join('\n'))
+      embed.setFooter(`Showing 1-${chunks.length} of ${txt.length} pokémon matching this search.`);
+    }
+    embed.setTitle(`${message.author.tag}'s pokemon:`)
+    embed.setColor(`#05f5fc`)
+    return message.channel.send(embed);
+  }
+}
+if(message.content.includes("--legendary") || message.content.includes("--l")){
+    if(Number(args[0])){
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      if (legends.includes(user.pokemons[i].name.capitalize())) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    if(args[0] == 1){
+      for (var i = args[0]*0; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    else{
+       for (var i = (args[0]*20)-20; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: ${args[0]}. Use pages like: ${nguild.prefix}p 2 --l`);
+    return message.channel.send(embed)
+  }
+  else{
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      if (legends.includes(user.pokemons[i].name.capitalize())) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    for (var i = 0; i < 20+(1-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: 1. Use pages like: ${nguild.prefix}p 2 --l`);
+    return message.channel.send(embed)
+  }
+}
+    
+if(message.content.includes("--name") || message.content.includes("--n ")){
+  if(Number(args[0])){
+    var arg = args.join('-');
+    var filter = arg.replace(`${args[0]}---name-`, "")
+    var filter1 = filter.replace(`${args[0]}---n-`, "")
+    var name = filter1
+    if(message.content.toLowerCase().includes("alolan")){
+    name = name.replace("-"," ")
+    }
+    if(message.content.toLowerCase().includes("shiny")){
+      name = name.replace("shiny-", "")
+    }
+    let dir = ``;
+  for (var i = 0; i < user.pokemons.length; i++) {
+    if (name.toLowerCase() == user.pokemons[i].name.toLowerCase()) {
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p
+    }
+    else if(message.content.includes("shiny") && user.pokemons[i].shiny && name.toLowerCase() == user.pokemons[i].name.toLowerCase()){
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p
+    }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    if(args[0] == 1){
+      for (var i = args[0]*0; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    else{
+       for (var i = (args[0]*20)-20; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: ${args[0]}. Use pages like: ${nguild.prefix}p 2 --n charmander`);
+    return message.channel.send(embed)
+  }
+  else{
+  var arg = args.join('-');
+  var name = arg.replace(`${args[0]}-`, "")
+  if(message.content.toLowerCase().includes("alolan")){
+    name = name.replace("-"," ")
+  }
+  if(message.content.toLowerCase().includes("shiny")){
+      name = name.replace("shiny-", "")
+  }
+  let dir = ``;
+  for (var i = 0; i < user.pokemons.length; i++) {
+    if (name.toLowerCase() == user.pokemons[i].name.toLowerCase()) {
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p
+    }
+    else if(message.content.includes("shiny") && user.pokemons[i].shiny && name.toLowerCase() == user.pokemons[i].name.toLowerCase()){
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p
+    }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    for (var i = 0; i < 20+(1-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokémon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: 1. Use pages like: ${nguild.prefix}p 1 --n charmander`);
+    return message.channel.send(embed)
+  }
+}
+if(message.content.includes("--nick ") || message.content.includes("--nickname")){
+  if(Number(args[0])){
+    var arg = args.join('-');
+    var filter = arg.replace(`${args[0]}---nickname-`, "")
+    var filter1 = filter.replace(`${args[0]}---nick-`, "")
+    var name = filter1.replace("-", " ")
+    let dir = ``;
+  for (var i = 0; i < user.pokemons.length; i++) {
+    if (name == user.pokemons[i].nick) {
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p
+    }
+  }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    if(args[0] == 1){
+      for (var i = args[0]*0; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    else{
+       for (var i = (args[0]*20)-20; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: ${args[0]}. Use pages like: ${nguild.prefix}p 2 --nick charmander`);
+    return message.channel.send(embed)
+  }
+  else{
+  var arg = args.join('-');
+  var filter = arg.replace(`${args[0]}-`, "")
+  var name = filter.replace("-", " ")
+  let dir = ``;
+  for (var i = 0; i < user.pokemons.length; i++) {
+    if (name == user.pokemons[i].nick) {
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p
+    }
+  }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    for (var i = 0; i < 20+(1-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokémon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: 1. Use pages like: ${nguild.prefix}p 1 --nick fire king`);
+    return message.channel.send(embed)
+  }
+}
+
+    
+if(message.content.includes("--legendary") && !message.content.includes("--shiny") || message.content.includes("--l") && !message.content.includes("--s")){
+  if(Number(args[0])){
+    let dir = ``;
+  for (var i = 0; i < user.pokemons.length; i++) {
+    if (legends.includes(user.pokemons[i].name.capitalize())) {
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p
+    }
+  }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    if(args[0] == 1){
+      for (var i = args[0]*0; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    else{
+       for (var i = (args[0]*20)-20; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: ${args[0]}. Use pages like: ${nguild.prefix}p 2 --l`);
+    return message.channel.send(embed)
+  }
+  else{
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      if (legends.includes(user.pokemons[i].name.capitalize())) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    for (var i = 0; i < 20+(1-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: 1. Use pages like: ${nguild.prefix}p 2 --l`);
+    return message.channel.send(embed)
+  }
+}
+ 
+if(message.content.includes("--alolan") || message.content.includes("--a")){
+  if(Number(args[0])){
+    let dir = ``;
+  for (var i = 0; i < user.pokemons.length; i++) {
+    if (alolans.includes(user.pokemons[i].name.capitalize())) {
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p
+    }
+  }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    if(args[0] == 1){
+      for (var i = args[0]*0; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    else{
+       for (var i = (args[0]*20)-20; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: ${args[0]}. Use pages like: ${nguild.prefix}p 2 --a`);
+    return message.channel.send(embed)
+  }
+  else{
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      if (alolans.includes(user.pokemons[i].name.capitalize())) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    for (var i = 0; i < 20+(1-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: 1. Use pages like: ${nguild.prefix}p 2 --a`);
+    return message.channel.send(embed)
+  }
+}
+if(message.content.includes("--mythical") && !message.content.includes("--shiny") || message.content.includes("--m") && !message.content.includes("--s")){
+  if(Number(args[0])){
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      if (mythics.includes(user.pokemons[i].name.capitalize())) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    if(args[0] == 1){
+      for (var i = args[0]*0; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    else{
+       for (var i = (args[0]*20)-20; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: ${args[0]}. Use pages like: ${nguild.prefix}p 2 --m`);
+    return message.channel.send(embed)
+  }
+  else{
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      if (mythics.includes(user.pokemons[i].name.capitalize())) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    for (var i = 0; i < 20+(1-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: 1. Use pages like: ${nguild.prefix}p 2 --m`);
+    return message.channel.send(embed)
+  }
+}
+    
+if(message.content.includes("--test") || message.content.includes("--t")) {
+  const arg = message.content.split(/ +/g).slice(1);
+}
+    
+
+if(message.content.includes("--ultrabeast") || message.content.includes("--ub")){
+    if(Number(args[0])){
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      if (ub.includes(user.pokemons[i].name.capitalize())) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    if(args[0] == 1){
+      for (var i = args[0]*0; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    else{
+       for (var i = (args[0]*20)-20; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: ${args[0]}. Use pages like: ${nguild.prefix}p 2 --ub`);
+    return message.channel.send(embed)
+  }
+  else{
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      if (ub.includes(user.pokemons[i].name.capitalize())) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    for (var i = 0; i < 20+(1-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: 1. Use pages like: ${nguild.prefix}p 2 --ub`);
+    return message.channel.send(embed)
+  }
+}   
+    
+if(message.content.includes("--iv") || message.content.includes("--i")){
+    if(Number(args[0])){
+     // let name = args[1].toLowerCase()
+  let index = args[0];
+  const no = ((index + 1)*20)-20
+  
+  let txt = user.pokemons.map((r, i) => {
+    r.num = i + 1;
+    return r;
+  }).sort((a, b) => {
+    return b.totalIV - a.totalIV
+  }).map((item, i) => {
+         return `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${item.num} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`
+  
+})
+  
+  let embed = new Discord.MessageEmbed()
+  .setTitle(`${message.author.tag}'s filtered pokemon:`)
+  .setColor('#05f5fc')
+  .setDescription(txt.slice((args[0]-1)*20, 20+(args[0]-1)*20).join("\n"))
+  .setFooter(`Showing Page: ${args[0]}. Use pages like: ${nguild.prefix}p 2 --i`);
+  return message.channel.send(embed)
+  }
+  else{
+
+ // let name = args[1].toLowerCase()
+  let index = 1;
+  const no = ((index + 1)*20)-20
+  
+  let txt = user.pokemons.map((r, i) => {
+    r.num = i + 1;
+    return r;
+  }).sort((a, b) => {
+    return b.totalIV - a.totalIV
+  }).map((item, i) => {
+         return `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${item.num} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`
+  
+})
+  
+  let embed = new Discord.MessageEmbed()
+  .setTitle(`${message.author.tag}'s filtered pokemon:`)
+  .setColor('#05f5fc')
+  .setDescription(txt.slice(0, 20).join("\n"))
+  .setFooter(`Showing Page: 1. Use pages like: ${nguild.prefix}p 2 --i`);
+  return message.channel.send(embed)
+  }
+  
+}
+    
+    
+
+if(message.content.includes("--atkiv") || message.content.includes("--aiv ")){
+  let arg = args[1]
+  let iv = args[2]
+  console.log(`${arg}:${iv}`)
+  let dir = ``;
+  for (var i = 0; i < user.pokemons.length; i++) {
+    if(arg == ">" && user.pokemons[i].totalIV > iv){
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p      
+    }
+    if(arg == "<" && user.pokemons[i].totalIV < iv){
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p      
+    }
+  }
+  if(dir == ""){
+    dir += "Nothing to show"
+  }
+  var txt = `${dir}`
+  let embed = new Discord.MessageEmbed()
+  .setTitle(`${message.author.tag}'s pokemon:`)
+  .setColor('#05f5fc')
+  .setDescription(txt)
+  return message.channel.send(embed)
+}
+
+
+    // Make this like whenever someone uses .pokemon --name charmander --shiny it fiters both or even if someone uses .pokemon --shiny --name charmander it would work
+
+/*if(message.content.includes("--name") || message.content.includes("--n") && message.content.includes("--shiny") || message.content.includes("--s") ){
+  let command = '--name ';
+  let pn = message.content.slice(command.length);
+  console.log(pn)
+  let name = args[1].toLowerCase()
+  let dir = ``;
+  for (var i = 0; i < user.pokemons.length; i++) {
+    if (name == user.pokemons[i].name.toLowerCase() && user.pokemons[i].shiny) {
+      var p = ``
+      p +=`${user.pokemons[i].name} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%\n`
+      dir += p
+    }
+  }
+  if(dir == ""){
+    dir += "Nothing to show"
+  }
+  var txt = `${dir}`
+  let embed = new Discord.MessageEmbed()
+  .setTitle(`Filtered Pokemon:`)
+  .setColor('#05f5fc')
+  .setDescription(txt)
+  return message.channel.send(embed)
+}*/
+if(message.content.includes("--shiny") && !message.content.includes("--legendary") || message.content.includes("--s") && !message.content.includes("--l")){
+  if(Number(args[0])){
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      if (user.pokemons[i].shiny) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    if(args[0] == 1){
+      for (var i = args[0]*0; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    else{
+       for (var i = (args[0]*20)-20; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: ${args[0]}. Use pages like: ${nguild.prefix}p 2 --s`);
+    return message.channel.send(embed)
+  }
+  else{
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      if (user.pokemons[i].shiny) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    for (var i = 0; i < 20+(1-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: 1. Use pages like: ${nguild.prefix}p 2 --s`);
+    return message.channel.send(embed)
+  }
+  }
+    
+    if(message.content.includes("--legendary") && message.content.includes("--shiny") || message.content.includes("--l") && message.content.includes("--s")){
+  if(Number(args[0])){
+    let dir = ``;
+  for (var i = 0; i < user.pokemons.length; i++) {
+    if (legends.includes(user.pokemons[i].name.capitalize()) && user.pokemons[i].shiny) {
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p
+    }
+  }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    if(args[0] == 1){
+      for (var i = args[0]*0; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    else{
+       for (var i = (args[0]*20)-20; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: ${args[0]}. Use pages like: ${nguild.prefix}p 2 --l`);
+    return message.channel.send(embed)
+  }
+  else{
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      if (legends.includes(user.pokemons[i].name.capitalize()) && user.pokemons[i].shiny) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    for (var i = 0; i < 20+(1-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: 1. Use pages like: ${nguild.prefix}p 2 --l`);
+    return message.channel.send(embed)
+  }
+}
+    
+        if(message.content.includes("--mythical") && message.content.includes("--shiny") || message.content.includes("--m") && message.content.includes("--s")){
+  if(Number(args[0])){
+    let dir = ``;
+  for (var i = 0; i < user.pokemons.length; i++) {
+    console.log(mythics.includes(user.pokemons[i].name), user.pokemons[i].shiny)
+    if (mythics.includes(user.pokemons[i].name.capitalize()) && user.pokemons[i].shiny) {
+      var p = ``
+      p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+      dir += p
+    }
+  }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    if(args[0] == 1){
+      for (var i = args[0]*0; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    else{
+       for (var i = (args[0]*20)-20; i < 20+(args[0]-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: ${args[0]}. Use pages like: ${nguild.prefix}p 2 --l`);
+    return message.channel.send(embed)
+  }
+  else{
+    let dir = ``;
+    for (var i = 0; i < user.pokemons.length; i++) {
+      console.log(mythics.includes(user.pokemons[i].name), user.pokemons[i].shiny)
+      if (mythics.includes(user.pokemons[i].name.capitalize()) && user.pokemons[i].shiny) {
+        var p = ``
+        p +=`${user.pokemons[i].name.capitalize()} ${(user.pokemons[i].shiny ? "⭐": "")} | Level: ${user.pokemons[i].level} | Number: ${i+1} | IV: ${user.pokemons[i].totalIV}%${(user.pokemons[i].nick != null ? ` | Nickname: ${user.pokemons[i].nick}`: "")}\n`
+        dir += p
+      }
+    }
+    if(dir == ""){
+      dir += "Nothing to show"
+    }
+    var lines = dir.split("\n");
+    var txt = ""
+    for (var i = 0; i < 20+(1-1)*20; i++) {
+        txt += lines[i] + "\n"
+    }
+    var finaltxt = txt.replace(/undefined\n+/g, "")
+    var text= `${finaltxt}`
+    let embed = new Discord.MessageEmbed()
+    .setTitle(`${message.author.tag}'s filtered pokemon:`)
+    .setColor('#05f5fc')
+    .setDescription(text)
+    .setFooter(`Showing Page: 1. Use pages like: ${nguild.prefix}p 2 --l`);
+    return message.channel.send(embed)
+  }
+}
+    
+  
+    if(Number(args[0]) && user.pokemons[20] && message.content.startsWith(`${nguild.prefix}p`) || Number(args[0]) && message.content.startsWith(`${nguild.prefix}pokemon`)){
+      let chunks = chunk(user.pokemons, 20);
+      let index = args[0]-1;
+      let ix = (( index % chunks.length) + chunks.length) % chunks.length;
+      const embed = new Discord.MessageEmbed();
+      let actualpage = index + 1
+      index = ((index % chunks.length) + chunks.length) % chunks.length;
+      if(args[0] > chunks.length){
+        embed.setDescription(`Nothing to show`)
+        embed.setFooter(`Showing ${args[0]}-${chunks.length} of ${user.pokemons.length} pokémon matching this search.`);
+      }
+      else{
+        if(user.orderIV == true){
+          let txt = user.pokemons.map((r, i) => {
+              r.num = i + 1;
+              return r;
+            }).sort((a, b) => {
+              return b.totalIV - a.totalIV
+            }).map((item, i) => {
+              return `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${item.num} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`
+            })
+          embed.setDescription(txt.slice((args[0]-1)*20, 20+(args[0]-1)*20).join("\n"))
+        }else if(user.orderAlphabet == true){
+          let txt = user.pokemons.map((r, i) => {
+            r.num = i + 1;
+            return r;
+          }).sort((a, b) => {
+            if(a.name < b.name) { return -1; }
+            if(a.name > b.name) { return 1; }
+            return 0;
+          }).map((item, i) => {
+           return `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${item.num} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`
+          })
+          embed.setDescription(txt.slice((args[0]-1)*20, 20+(args[0]-1)*20).join("\n"))
+        }else{
+          const no = ((index + 1)*20)-20
+         embed.setDescription(chunks[index].map((item, i) => `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${no+i+1} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`).join('\n'))
+        }
+        const no = ((index + 1)*20)-20
+        embed.setFooter(`Showing ${index + 1}-${chunks.length} of ${user.pokemons.length} pokémon matching this search.`);
+      }
+      embed.setTitle(`${message.author.tag}'s pokemon:`)
+      embed.setColor(`#05f5fc`)
+      return message.channel.send(embed); 
+    }
+    
+    if(user.pokemons[20] && message.content.endsWith(`${nguild.prefix}p`) || message.content.endsWith(`${nguild.prefix}pokemon`)){
+      let chunks = chunk(user.pokemons, 20);
+      let index = 0;
+      let ix = (( index % chunks.length) + chunks.length) % chunks.length;
+      const embed = new Discord.MessageEmbed();
+      let actualpage = index + 1
+      index = ((index % chunks.length) + chunks.length) % chunks.length;
+      const no = ((index + 1)*20)-20
+      embed.setTitle(`${message.author.tag}'s pokemon:`)
+      if(user.orderIV == true){
+        let txt = user.pokemons.map((r, i) => {
+          r.num = i + 1;
+          return r;
+        }).sort((a, b) => {
+          return b.totalIV - a.totalIV
+        }).map((item, i) => {
+         return `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${item.num} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`
+        })
+        embed.setDescription(txt.slice(0, 20).join("\n"))
+      }else if(user.orderAlphabet == true){
+        let txt = user.pokemons.map((r, i) => {
+          r.num = i + 1;
+          return r;
+        }).sort((a, b) => {
+          if(a.name < b.name) { return -1; }
+          if(a.name > b.name) { return 1; }
+          return 0;
+        }).map((item, i) => {
+         return `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${item.num} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`
+        })
+        embed.setDescription(txt.slice(0, 20).join("\n"))
+      }else{
+        embed.setDescription(chunks[index].map((item, i) => `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${no+i+1} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`).join('\n'))
+      }
+      embed.setFooter(`Showing ${index + 1}-${chunks.length} of ${user.pokemons.length} pokémon matching this search.`);
+      embed.setColor(`#05f5fc`)
+      return message.channel.send(embed); 
+    }else{
+      let chunks = chunk(user.pokemons, 20);
+      const embed = new Discord.MessageEmbed();
+      embed.setTitle(`${message.author.tag}'s pokemon:`)
+      if(user.orderIV == true){
+        let txt = user.pokemons.map((r, i) => {
+          r.num = i + 1;
+          return r;
+        }).sort((a, b) => {
+          return b.totalIV - a.totalIV
+        }).map((item, i) => {
+         return `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${item.num} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`
+        })
+        embed.setDescription(txt.slice(0, 20).join("\n"))
+      }else if(user.orderAlphabet == true){
+        let txt = user.pokemons.map((r, i) => {
+          r.num = i + 1;
+          return r;
+        }).sort((a, b) => {
+          if(a.name < b.name) { return -1; }
+          if(a.name > b.name) { return 1; }
+          return 0;
+        }).map((item, i) => {
+         return `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${item.num} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`
+        })
+        embed.setDescription(txt.slice(0, 20).join("\n"))
+      }else{
+        embed.setDescription(chunks[0].map((item, i) => `**${item.name.capitalize()} ${(item.shiny ? "⭐": "")}** | Level: ${item.level} | Number: ${i+1} | IV: ${item.totalIV}%${(item.nick != null ? ` | Nickname: ${item.nick}`: "")}`).join('\n'))
+      }
+      embed.setFooter(`Showing 1-1 of ${user.pokemons.length} pokémon matching this search.`);
+      embed.setColor(`#05f5fc`)
+      return message.channel.send(embed);
+    }
+  }
+  /*
+    else{
+      let page = parseInt(args[0]) ? parseInt(args[0]) : 1;
+    const check = Math.floor(Math.round(page/20));
+    let desc = user.pokemons.map((item, i) => `**${item.shiny ? ":star:" : ""}${item.name}** | Level: ${item.level} | Number: ${i+1} | IV: ${item.totalIV}%`).slice(page - 1, Math.floor(Math.round(page * 20))).join('\n')
+    if(page !== 1 && check < Math.floor(Math.round(user.pokemons.length * 20))) desc = "Not enough pokemons in that page to view it!"  
+    return message.channel.send({embed: {
+        title: `Your Pokémon! Page: ${page}`,
+        color: "#05f5fc",
+        description: desc
+      }})
+    }
+    */
+}
+function chunk(array, chunkSize) {
+    const temp = [];
+    for (let i = 0; i < array.length; i += chunkSize) {
+      temp.push(array.slice(i, i + chunkSize));
+    }
+    return temp;
+  }
