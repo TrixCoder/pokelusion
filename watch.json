@@ -1,0 +1,11 @@
+{
+  "install": {
+    "include": ["^package\\.json$", "^\\.nv$"]
+  },
+  "restart": {
+    "exclude": ["^public/", "^dist/"],
+    "include": ["\\.js$", "\\.json"]
+  },
+    "engines": {  "node": "12.x" },
+  "throttle": 900000
+}
