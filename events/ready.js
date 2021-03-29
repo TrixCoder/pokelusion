@@ -61,51 +61,223 @@ module.exports = async client => {
   }
 
   if(Date.now() > giveaway.time) {
-   // await m.reactions.cache.get("🎉")
 
-   const reaction = msg.reactions.cache.get("🎉");
-  
-
-   let users = await fetchReactedUsers(reaction);
-
-  
-   const list = await users.filter(u =>  u.bot !== true);
-
-   if (!list.length) {
-    embed.description = `Winner: No one.`;
-    embed.footer.text = `Giveaway Finished`;
-
-    await GiveawaySchema.deleteOne({id: giveaway.id, enabled: true, channel: giveaway.channel, msgId: giveaway.msgId})
-    return msg.edit(embed);
-}
-let winners = [];
-for (let i = 0; i < giveaway.winnerCount; i++) {
-  const x = client.draw(list);
-
-  if (!winners.includes(x)) winners.push(x);
-}
-
-embed.description = `Winner(s): ${winners.filter(u => u !== undefined && u !== null).map(u => u.toString()).join(", ")}`;
-embed.footer.text = `${client.config.footer()} | Giveaway Finished`;
-
-
-await msg.edit(embed);
-giveaway.enabled = false
-
- await giveaway.save().catch(e => console.log(e))
-if (winners.length) msg.channel.send(`🎉 Congratulations, ${winners.map(u => u.toString()).join(", ")}! You won the giveaway for **${giveaway.prize}**! 🎉`);
-
-
-  }
+    const reaction = msg.reactions.cache.get("🎉");
+   
+ 
+    let users = await fetchReactedUsers(reaction);
+ 
+   
+    const list = await users.filter(u =>  u.bot !== true && u.id !== giveaway.host);
+      if(giveaway.type === "automatic") {
+         const prize = giveaway.prize;
+        
+        
+       let nwinner = list.forEach(async w => {
+       
+         
+      if(prize.endsWith("c")){
+         var amount = prize.replace("c","").replace("k", "000")
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: w.id});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+         
+       if(prize.endsWith("credits")){
+         var amount = prize.replace("credits","").replace("k", "000")
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: w.id});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("coins")){
+         var amount = prize.replace("coins","").replace("k", "000")
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: w.id});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("pokecoins")){
+         var amount = prize.replace("pokecoins","").replace("k", "000")
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: w.id});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("coin")){
+         var amount = prize.replace("coin","").replace("k", "000")
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: w.id});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("pokecoin")){
+         var amount = prize.replace("pokecoin","").replace("k", "000")
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: w.id});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("redeems")){
+         var amount = prize.replace("redeems","")
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: w.id});
+         const newbal = mg.redeems + ra;
+         mg.redeems =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("redeem")){
+         var amount = prize.replace("redeem","")
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: w.id});
+         const newbal = mg.redeems + ra;
+         mg.redeems =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("r")){
+         var amount = prize.replace("r","")
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: w.id});
+         const newbal = mg.redeems + ra;
+         mg.redeems =newbal
+         await mg.save();
+       }
+         });
+       } 
+    if((list.length === 0 || list.length < giveaway.winnerCount) && giveaway.type === "automatic") {
+         let prize = giveaway.prize;
+      
+         if(prize.endsWith("c")){
+         var amount = prize.replace("c","").replace("k", "000")
+         amount = giveaway.winnerCount * amount
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: giveaway.host});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+         
+       if(prize.endsWith("credits")){
+         var amount = prize.replace("credits","").replace("k", "000")
+         amount = giveaway.winnerCount * amount
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: giveaway.host});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("coins")){
+         var amount = prize.replace("coins","").replace("k", "000")
+         amount = giveaway.winnerCount * amount
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: giveaway.host});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("pokecoins")){
+         var amount = prize.replace("pokecoins","").replace("k", "000")
+         amount = giveaway.winnerCount * amount
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: giveaway.host});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("coin")){
+         var amount = prize.replace("coin","").replace("k", "000")
+         amount = giveaway.winnerCount * amount
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: giveaway.host});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("pokecoin")){
+         var amount = prize.replace("pokecoin","").replace("k", "000")
+         amount = giveaway.winnerCount * amount
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: giveaway.host});
+         const newbal = mg.balance + ra;
+         mg.balance =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("redeems")){
+         var amount = prize.replace("r","")
+         amount = giveaway.winnerCount * amount
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: giveaway.host});
+         const newbal = mg.redeems + ra;
+         mg.redeems =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("redeem")){
+         var amount = prize.replace("r","")
+         amount = giveaway.winnerCount * amount
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: giveaway.host});
+         const newbal = mg.redeems + ra;
+         mg.redeems =newbal
+         await mg.save();
+       }
+       if(prize.endsWith("r")){
+         var amount = prize.replace("r","")
+         amount = giveaway.winnerCount * amount
+         var ra = parseInt(amount)
+         let mg = await User.findOne({id: giveaway.host});
+         const newbal = mg.redeems + ra;
+         mg.redeems =newbal
+         await mg.save();
+       }
+      
+    }
+     
+    if (list.length === 0) {
+     embed.description = `Winner: No one.`;
+     embed.footer.text = `Giveaway Finished`;
+      
+     await GiveawaySchema.deleteOne({id: giveaway.id, enabled: true, channel: giveaway.channel, msgId: giveaway.msgId})
+     return msg.edit(embed);
+ }else if(list.length < giveaway.winnerCount){
+     embed.description = `Winner: Couldn't find enough winners.`;
+     embed.footer.text = `Giveaway Finished`;
+      
+     await GiveawaySchema.deleteOne({id: giveaway.id, enabled: true, channel: giveaway.channel, msgId: giveaway.msgId})
+     return msg.edit(embed);
+ }
+ let winners = [];
+ for (let i = 0; i < giveaway.winnerCount; i++) {
+   const x = client.draw(list);
+ 
+   if (!winners.includes(x)) winners.push(x);
+ }
+ 
+ embed.description = `Winner(s): ${winners.filter(u => u !== undefined && u !== null).map(u => u.toString()).join(", ")}`;
+ embed.footer.text = `${client.config.footer()} | Giveaway Finished`;
+ 
+ 
+ await msg.edit(embed);
+ giveaway.enabled = false
+ 
+  await giveaway.save().catch(e => console.log(e))
+ if (winners.length) msg.channel.send(`🎉 Congratulations, ${winners.map(u => u.toString()).join(", ")}! You won the giveaway for **${giveaway.prize}**! 🎉`);
+ 
+ 
+   }
     })
   }, 60000)
   
   
   
     setInterval(() => {
-    let members = 0;
-    client.guilds.cache.forEach(g => members += g.memberCount);
-    client.user.setActivity(`with ${members} users | ${client.guilds.cache.size} Guilds`); 
+    client.user.setActivity(`with ${client.users.cache.size} users | ${client.guilds.cache.size} Guilds`); 
     }, 60000);
     console.log('Ready!')
   

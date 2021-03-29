@@ -59,14 +59,49 @@ module.exports = {
    if(zbc["nick"] || zbc["nickname"]) s = s.filter(e=>{ if (e.nick && (zbc['nick'] || zbc["nickname"]) == e.nick.toLowerCase().replace(/-+/g, ' ')) return e });
    if(zbc.fav) s = s.filter(e=>{ if (e.fav) return e });
    if(zbc['type'] || zbc["tp"]) s = s.filter(e=>{if (e.rarity.match(new RegExp((zbc['type'] || zbc["tp"]),"gmi")) != null) return e });
+   if(zbc["hpiv"]){
+    let a = zbc["hpiv"].split(" ")
+    if(a[0] === ">") s = s.filter(e=>{if(e.hp > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.hp < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.hp == a[1]) return e });
+   }
+   if(zbc["atkiv"]){
+    let a = zbc["atkiv"].split(" ")
+    if(a[0] === ">") s = s.filter(e=>{if(e.atk > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.atk < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.atk == a[1]) return e });
+   }
+   if(zbc["defiv"]){
+    let a = zbc["defiv"].split(" ")
+    if(a[0] === ">") s = s.filter(e=>{if(e.def > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.def < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.def == a[1]) return e });
+   }
+   if(zbc["spatkiv"]){
+    let a = zbc["spatkiv"].split(" ")
+    if(a[0] === ">") s = s.filter(e=>{if(e.spatk > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.spatk < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.spatk == a[1]) return e });
+   }
+   if(zbc["spdefiv"]){
+    let a = zbc["spdefiv"].split(" ")
+    if(a[0] === ">") s = s.filter(e=>{if(e.spdef > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.spdef < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.spdef == a[1]) return e });
+   }
+   if(zbc["speediv"]){
+    let a = zbc["speediv"].split(" ")
+    if(a[0] === ">") s = s.filter(e=>{if(e.speed > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.speed < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.speed == a[1]) return e });
+   }
+    
    if(user.orderIV == true) s = s.sort((a,b)=>{return b.totalIV - a.totalIV})
    if(user.orderAlphabet == true)s = s.sort((a,b)=>{
       if(a.name < b.name) { return -1; }
       if(a.name > b.name) { return 1; }
       return 0;
    })
-
-
 
   let txt;
   let num = 0

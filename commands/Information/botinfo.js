@@ -16,23 +16,15 @@ module.exports = {
       if(Date.now() - message.createdTimestamp > 1000){
         ping += "\n(Because of discord api issues ping is being high)"
       }
-      let members = 0;
-      client.guilds.cache.forEach(g => members += g.memberCount);
+      let members = client.guilds.cache.map(g => g).reduce((prev, val) => val.memberCount + prev, 0);
+      let channels = client.guilds.cache.map(g => g).reduce((prev, val) => val.channels.cache.size + prev, 0);
       const embedStats = new MessageEmbed()
       .setAuthor(client.user.username, client.user.avatarURL)
       .setColor("#05f5fc")
-.addField(
-        "🛰 Memory Usage",
-        `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} / ${(
-          os.totalmem() /
-          1024 /
-          1024
-        ).toFixed(2)} MB`,
-        true
-      )
-      .addField("👤 Users", `${members}`, true)
-      .addField("🏠 Servers", `${client.guilds.cache.size}`, true)
-      .addField("#️⃣ Channels ", `${client.channels.cache.size}`, true)
+.addField("🛰 Memory Usage", `${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)} / ${(os.totalmem() /1024 /1024).toFixed(2)} MB`, true)
+      .addField("👤 Users", `${members.toLocaleString()}`, true)
+      .addField("🏠 Servers", `${client.guilds.cache.size.toLocaleString()}`, true)
+      .addField("#️⃣ Channels ", `${channels.toLocaleString()}`, true)
       .addField("📚 Library", `Discord.js v${version}`, true)
       .addField("🗒 Node", `${process.version}`, true)
       .addField("🤖 API Latency", `${ping}`) // discord.js is v11 ws.ping wont work

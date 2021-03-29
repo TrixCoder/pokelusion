@@ -18,10 +18,11 @@ async function fetchReactedUsers(reaction, after) {
   }
 
 module.exports = {
-  name: `gstart`,
+  name: `giveawaystart`,
   category: 'EventManagement',
   description: `Create  or end or reroll a giveaway.`,
-  usage: 'giveawaystart <duration> <winnerCount> <prize>',
+  aliases: ["gstart"],
+  usage: 'agiveawaystart <duration> <winnerCount> <prize>',
   run: async (client, message, args) => {
     let msg = message;
     if(!message.member.hasPermission('MANAGE_GUILD') && !message.member.roles.cache.some(r => r.name === "Giveaways")) return message.channel.send('You need manage server permission or Giveaways role to use this command')
@@ -77,7 +78,7 @@ module.exports = {
           let secondndCheck = await GiveawaySchema.findOne({id: message.guild.id, channel: giveawayChannel.id, enabled: true});
                     if(secondndCheck) return message.reply(`${fail} There is already a giveaway running in that channel. Please wait for it to finish to run one more there ${fail}.`)
                 let embed = new MessageEmbed()
-                .setColor("#05f5fc")
+                .setColor("#3F33FF")
                 .setTitle(giveawayPrize)
                 .setDescription(`Winners: ${giveawayNumberWinners}\nReact with :tada: to enter!\n Hosted By: ${message.author}.`)
                 .setFooter(`Ends at`)

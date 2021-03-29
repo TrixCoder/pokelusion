@@ -1,3 +1,6 @@
+require('events').EventEmitter.defaultMaxListeners = 0;
+
+
 String.prototype.capitalize = function() {
       return this.charAt(0).toUpperCase() + this.slice(1);
     };
@@ -81,7 +84,7 @@ const handleC = () => {
 handleC();
 
 
-client.login("NTUyMzY3ODI3MzcwMzc3MjE4.XH4OoA.oGYtiUc3Pv2fSxUpFE6aX7EqzBU");
+client.login("NzE4NDQ1NTg5MTc1NTk5MTU0.Xto-mA.1szocPJQGktEjyltXJBWVzZk6yg");
 
 /* event handler */
   const events = readdirSync("./events/");

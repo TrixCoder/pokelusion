@@ -1,6 +1,7 @@
 const Market = require("./../../models/market");
 const User = require("./../../models/user");
 const discord = require("discord.js")
+const Discord = require("discord.js")
 const Guild = require('../../models/guild.js')
 const capitalize = function(arg) {
       return arg.charAt(0).toUpperCase() + arg.slice(1);
@@ -24,6 +25,7 @@ const legends = fs.readFileSync("./db/legends.txt").toString().trim().split("\n"
 const mythics = fs.readFileSync("./db/mythics.txt").toString().trim().split("\n").map(r => r.trim());
 const alolans = fs.readFileSync("./db/alolans.txt").toString().trim().split("\n").map(r => r.trim());
 const ub = fs.readFileSync("./db/ub.txt").toString().trim().split("\n").map(r => r.trim());
+var galarians = fs.readFileSync("./db/galarians.txt").toString().trim().split("\n").map(r => r.trim());
 
 module.exports = {
   name: 'market',
@@ -62,7 +64,7 @@ module.exports = {
       }
       else{
         const no = ((index + 1)*20)-20
-        embed.setDescription(chunks[index].map((r, i) => `**Level ${r.pokemon.level} ${(r.pokemon.shiny ? "⭐": "")}${r.pokemon.name.capitalize().replace(/-+/g, " ")}** | ID: ${r.num} | IV: ${r.pokemon.totalIV}% | Price: ${new Intl.NumberFormat('en-IN').format(r.price)} Pokecoin(s) `).join('\n') || "There is no pokemon in market")
+        embed.setDescription(chunks[index].map((r, i) => `**Level ${r.pokemon.level} ${(r.pokemon.shiny ? "⭐": "")}${r.pokemon.name.replace(/-+/g, " ").replace(/\b\w/g, l => l.toUpperCase())}** | ID: ${r.num} | IV: ${r.pokemon.totalIV}% | Price: ${new Intl.NumberFormat('en-IN').format(r.price)} Pokecoin(s) `).join('\n') || "There is no pokemon in market")
         embed.setFooter(`Showing ${index + 1}-${chunks.length} of ${all.length} pokémon matching this search.`);
       }
       embed.setAuthor(`${message.author.tag}'s' Market Listings:`)
@@ -82,7 +84,7 @@ module.exports = {
         index = ((index % chunks.length) + chunks.length) % chunks.length;
         const no = ((index + 1)*20)-20
         embed.setAuthor(`${message.author.tag}'s Market Listings:`)
-        embed.setDescription(chunks[index].map((r, i) => `**Level ${r.pokemon.level} ${(r.pokemon.shiny ? "⭐": "")}${r.pokemon.name.capitalize().replace(/-+/g, " ")}** | ID: ${r.num} | IV: ${r.pokemon.totalIV}% | Price: ${new Intl.NumberFormat('en-IN').format(r.price)} Pokecoin(s) `).join('\n') || "There is no pokemon in market")
+        embed.setDescription(chunks[index].map((r, i) => `**Level ${r.pokemon.level} ${(r.pokemon.shiny ? "⭐": "")}${r.pokemon.name.replace(/-+/g, " ").replace(/\b\w/g, l => l.toUpperCase())}** | ID: ${r.num} | IV: ${r.pokemon.totalIV}% | Price: ${new Intl.NumberFormat('en-IN').format(r.price)} Pokecoin(s) `).join('\n') || "There is no pokemon in market")
         embed.setFooter(`Showing ${index + 1}-${chunks.length} of ${all.length} pokémon matching this search.`)
         embed.setColor(`#05f5fc`)
         return message.channel.send(embed); 
@@ -91,7 +93,7 @@ module.exports = {
         embed
         .setAuthor(`${message.author.tag}'s Market Listings:`)
         .setColor('#05f5fc')
-        .setDescription(chunks[0].map((r, i) => `**Level ${r.pokemon.level} ${(r.pokemon.shiny ? "⭐": "")}${r.pokemon.name.capitalize().replace(/-+/g, " ")}** | ID: ${r.num} | IV: ${r.pokemon.totalIV}% | Price: ${new Intl.NumberFormat('en-IN').format(r.price)} Pokecoin(s) `).join('\n') || "There is no pokemon in market")
+        .setDescription(chunks[0].map((r, i) => `**Level ${r.pokemon.level} ${(r.pokemon.shiny ? "⭐": "")}${r.pokemon.name.replace(/-+/g, " ").replace(/\b\w/g, l => l.toUpperCase())}** | ID: ${r.num} | IV: ${r.pokemon.totalIV}% | Price: ${new Intl.NumberFormat('en-IN').format(r.price)} Pokecoin(s) `).join('\n') || "There is no pokemon in market")
         .setFooter(`Showing 1-1 of ${all.length} pokémon matching this search.`);
         message.channel.send(embed)
       }}
@@ -129,6 +131,7 @@ module.exports = {
       else{  
         return message.channel.send(`You can't remove this pokemon because it's not in your market listings`);
       }
+    
     }else if(args[0] === "info" || args[0] === "i"){
       let market = await Market.find({});
       //let user = await Market.find({id: user.id}); 
@@ -168,7 +171,7 @@ module.exports = {
       
       const Embed = embed
   	  Embed.setColor('#05f5fc')
-	    Embed.setTitle(`Level ${market[num].pokemon.level} ${(market[num].pokemon.shiny ? "⭐": "")} ${g8.name.capitalize()}\nID: ${num+1}\nPrice: ${market[num].price}`)
+	    Embed.setTitle(`Level ${market[num].pokemon.level} ${(market[num].pokemon.shiny ? "⭐": "")} ${g8.name.capitalize()}\nID: ${num+1}\nPrice: ${new Intl.NumberFormat('en-IN').format(market[num].price)} Pokecoin(s)`)
       Embed.setDescription(`${(market[num].pokemon.nick != null ? `**Nickname:** ${market[num].pokemon.nick}`: "")}\n**Type:** ${tp}\n**HP:** ${Math.floor(Math.round(fhp))} - IV : ${stat1}/31\n**Attack:** ${Math.floor(Math.round(fatk))} - IV: ${stat2}/31\n**Defense:** ${Math.floor(Math.round(fdef))} - IV: ${stat3}/31\n**Sp. Atk:** ${Math.floor(Math.round(fspatk))} - IV: ${stat4}/31\n**Sp. Def:** ${Math.floor(Math.round(fspdef))} - IV: ${stat5}/31\n**Speed:** ${Math.floor(Math.round(fspeed))} - IV: ${stat6}/31\n**Total IV %:** ${finaliv}%`)
       Embed.setThumbnail(message.author.avatarURL({dynamic: true}))
       Embed.setFooter(`Use ${nguild.prefix}market buy ${num+1} to buy this pokemon`)
@@ -330,7 +333,7 @@ module.exports = {
       var tp = f.type.capitalize()
       const Embed = embed
   	  Embed.setColor('#05f5fc')
-	    Embed.setTitle(`Level ${market[num].pokemon.level} ${(market[num].pokemon.shiny ? "⭐": "")} ${f.name.capitalize()}\nID: ${num+1}\nPrice: ${market[num].price}`)
+	    Embed.setTitle(`Level ${market[num].pokemon.level} ${(market[num].pokemon.shiny ? "⭐": "")} ${f.name.capitalize()}\nID: ${num+1}\nPrice: ${new Intl.NumberFormat('en-IN').format(market[num].price)} Pokecoin(s)`)
       Embed.setDescription(`${(market[num].pokemon.nick != null ? `**Nickname:** ${market[num].pokemon.nick}`: "")}\n**Type:** ${tp}\n**HP:** ${Math.floor(Math.round(fhp))} - IV : ${stat1}/31\n**Attack:** ${Math.floor(Math.round(fatk))} - IV: ${stat2}/31\n**Defense:** ${Math.floor(Math.round(fdef))} - IV: ${stat3}/31\n**Sp. Atk:** ${Math.floor(Math.round(fspatk))} - IV: ${stat4}/31\n**Sp. Def:** ${Math.floor(Math.round(fspdef))} - IV: ${stat5}/31\n**Speed:** ${Math.floor(Math.round(fspeed))} - IV: ${stat6}/31\n**Total IV %:** ${finaliv}%`)
       Embed.setThumbnail(message.author.avatarURL({dynamic: true}))
       Embed.setFooter(`Use ${nguild.prefix}market buy ${num+1} to buy this pokemon`)
@@ -369,7 +372,7 @@ module.exports = {
       
       const Embed = embed
   	  Embed.setColor('#05f5fc')
-	    Embed.setTitle(`Level ${market[num].pokemon.level} ${(market[num].pokemon.shiny ? "⭐": "")} ${pk.name.capitalize()}\nID: ${num+1}\nPrice: ${market[num].price}`)
+	    Embed.setTitle(`Level ${market[num].pokemon.level} ${(market[num].pokemon.shiny ? "⭐": "")} ${pk.name.capitalize()}\nID: ${num+1}\nPrice: ${new Intl.NumberFormat('en-IN').format(market[num].price)} Pokecoin(s)`)
       Embed.setDescription(`${(market[num].pokemon.nick != null ? `**Nickname:** ${market[num].pokemon.nick}`: "")}\n**Type:** ${tp}\n**HP:** ${Math.floor(Math.round(fhp))} - IV : ${stat1}/31\n**Attack:** ${Math.floor(Math.round(fatk))} - IV: ${stat2}/31\n**Defense:** ${Math.floor(Math.round(fdef))} - IV: ${stat3}/31\n**Sp. Atk:** ${Math.floor(Math.round(fspatk))} - IV: ${stat4}/31\n**Sp. Def:** ${Math.floor(Math.round(fspdef))} - IV: ${stat5}/31\n**Speed:** ${Math.floor(Math.round(fspeed))} - IV: ${stat6}/31\n**Total IV %:** ${finaliv}%`)
       Embed.setThumbnail(message.author.avatarURL({dynamic: true}))
       Embed.setFooter(`Use ${nguild.prefix}market buy ${num+1} to buy this pokemon`)
@@ -439,7 +442,7 @@ module.exports = {
       var tp = bdy.types[0].type.name.capitalize()
       embed
       .setColor('#05f5fc')
-	    .setTitle(`Level ${market[num].pokemon.level} ${(market[num].pokemon.shiny ? "⭐": "")} ${market[num].pokemon.name.capitalize()}\nID: ${num+1}\nPrice: ${market[num].price}`)
+	    .setTitle(`Level ${market[num].pokemon.level} ${(market[num].pokemon.shiny ? "⭐": "")} ${market[num].pokemon.name.capitalize()}\nID: ${num+1}\nPrice: ${new Intl.NumberFormat('en-IN').format(market[num].price)} Pokecoin(s)`)
       .setDescription(`${(market[num].pokemon.nick != null ? `**Nickname:** ${market[num].pokemon.nick}`: "")}\n**Type:** ${tp}\n**HP:** ${Math.floor(Math.round(fhp))} - IV : ${stat1}/31\n**Attack:** ${Math.floor(Math.round(fatk))} - IV: ${stat2}/31\n**Defense:** ${Math.floor(Math.round(fdef))} - IV: ${stat3}/31\n**Sp. Atk:** ${Math.floor(Math.round(fspatk))} - IV: ${stat4}/31\n**Sp. Def:** ${Math.floor(Math.round(fspdef))} - IV: ${stat5}/31\n**Speed:** ${Math.floor(Math.round(fspeed))} - IV: ${stat6}/31\n**Total IV %:** ${finaliv}%`)
       .setFooter(`Use ${nguild.prefix}market buy ${num+1} to buy this pokemon`)
 	    .setThumbnail(message.author.avatarURL({dynamic: true}))
@@ -487,12 +490,13 @@ module.exports = {
   if(uri.endsWith(".gif")) imgname = "Pokemon.gif"
   embed.attachFiles([{name: imgname, attachment: uri}])
   .setImage("attachment://"+imgname)
-  embed.setFooter(`Displaying Pokémon: ${num+1}/${market.length}`)
+  embed.setFooter(`Use ${nguild.prefix}market buy ${num+1} to buy this pokemon`)
   message.channel.send(embed);
       }).catch((err) => {
         message.reply("An error occured to info the pokemon. Please contact to developers of the bot")
       })
       }
+    
     }else if(args[0] === "list" || args[0] === "l"){
       if(isNaN(args[1])) return message.channel.send(`Invalid pokemon number provided`);
       let num = parseInt(args[1]) - 1;
@@ -518,6 +522,7 @@ module.exports = {
       await newDoc.save().catch(e => console.log(e));
       
       return message.channel.send(`Successfully listed the pokemon on market`); 
+    
     }else if(args[0] === "buy" || args[0] === "b"){
       let market = await Market.find({});
       //let user = await Market.find({id: user.id});
@@ -558,8 +563,133 @@ module.exports = {
       
       if(userD) await userD.send(vmsg);
       
+    
     }else if(args[0] === "search" || args[0] === "s"){
       let market = await Market.find({});
+      let e = message,
+        n = args.slice(1).join(" "),
+        a = market,
+        i = nguild,
+        s = a.map((r, num) => { r.pokemon.num = num + 1; return r }),
+        zbc = {};
+      console.log(n)
+     n.split(/--|—/gmi).map(x=>{
+      if (x && (x = x.split(" "))) zbc[x.splice(0, 1)] = x.join(" ").replace(/\s$/, '') || true;
+    });
+   if(zbc["legendary"] || zbc["l"]) s = s.filter(e=>{if(legends.includes(e.pokemon.name.capitalize().replace(/-+/g, " "))) return e });
+   if(zbc["mythical"] || zbc["m"]) s = s.filter(e=>{if(mythics.includes(e.pokemon.name.capitalize().replace(/-+/g, " "))) return e });
+   if(zbc["ultrabeast"] || zbc["ub"]) s = s.filter(e=>{if(ub.includes(e.pokemon.name.capitalize().replace(/-+/g, " "))) return e });
+   if(zbc["mega"] || zbc["mg"]) s = s.filter(e=>{if((e.pokemon.name.toLowerCase().replace(/ +/g, "-")).startsWith("mega-")) return e });
+   if(zbc["alolan"] || zbc["a"]) s = s.filter(e=>{if(alolans.includes(e.pokemon.name.capitalize().replace(/-+/g, " "))) return e });
+   if(zbc["galarian"]) s = s.filter(e=>{if(galarians.includes(e.pokemon.name.capitalize().replace(/-+/g, " "))) return e; })
+   if(zbc["shiny"]|| zbc["s"]) s = s.filter( e=>{ if (e.pokemon.shiny) return e });
+   if(zbc["name"] || zbc["n"]) s = s.filter(e=>{ if (e && (zbc['name'] || zbc['n']) == e.pokemon.name.toLowerCase().replace(/-+/g, ' ')) return e });
+   if(zbc['type'] || zbc["tp"]) s = s.filter(e=>{if (e.pokemon.rarity.match(new RegExp((zbc['type'] || zbc["tp"]),"gmi")) != null) return e });
+   if (zbc['order'] || zbc['o']){
+     let order = zbc['order'] || zbc['o'];
+     if(order == "price a"){
+       s = s.sort((a,b)=> { return parseFloat(a.price) - parseFloat(b.price)});
+     }
+     else if(order == "price d"){
+       s = s.sort((a,b)=> { return parseFloat(b.price) - parseFloat(a.price)});
+     }
+     else if(order == "iv"){
+       s = s.sort((a,b)=> { return parseFloat(b.totalIV) - parseFloat(a.totalIV)});
+     }
+     else if(order == "alphabet"){
+       s = s.sort((a,b)=>{
+       if(a.name < b.name) { return -1; }
+       if(a.name > b.name) { return 1; }
+       return 0;
+       })
+     }
+   }
+   if(zbc["hpiv"]){
+    let a = zbc["hpiv"].split(" ")
+    if(a[0] === ">") s = s.filter(e=>{if(e.pokemon.hp > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.pokemon.hp < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.pokemon.hp == a[1]) return e });
+   }
+   if(zbc["atkiv"]){
+    let a = zbc["atkiv"].split(" ")
+    if(a[0] === ">") s = s.filter(e=>{if(e.pokemon.atk > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.pokemon.atk < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.pokemon.atk == a[1]) return e });
+   }
+   if(zbc["defiv"]){
+    let a = zbc["defiv"].split(" ")
+    if(a[0] === ">") s = s.filter(e=>{if(e.pokemon.def > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.pokemon.def < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.pokemon.def == a[1]) return e });
+   }
+   if(zbc["spatkiv"]){
+    let a = zbc["spatkiv"].split(" ")
+    console.log(s.map(s=>s.pokemon[0]))
+    if(a[0] === ">") s = s.filter(e=>{if(e.pokemon.spatk > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.pokemon.spatk < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.pokemon.spatk == a[1]) return e });
+   }
+   if(zbc["spdefiv"]){
+    let a = zbc["spdefiv"].split(" ")
+    console.log(s.map(s=>s.pokemon[0]))
+    if(a[0] === ">") s = s.filter(e=>{if(e.pokemon.spdef > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.pokemon.spdef < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.pokemon.spdef == a[1]) return e });
+   }
+   if(zbc["speediv"]){
+    let a = zbc["speediv"].split(" ")
+    console.log(s.map(s=>s.pokemon[0]))
+    if(a[0] === ">") s = s.filter(e=>{if(e.pokemon.speed > a[1]) return e });
+    if(a[0] === "<") s = s.filter(e=>{if(e.pokemon.speed < a[1]) return e });
+    if(Number(a[0])) s = s.filter(e=>{if(e.pokemon.speed == a[1]) return e });
+   }
+    let txt;
+  let num = 0
+  let embed = new Discord.MessageEmbed()
+  let array = [s];
+      //console.log(s)
+  let chunks = chunk(s, 20)
+  
+    let index = 0;
+    if(Number(args[1])) index = parseInt(args[1])-1
+    let ix = (( index % chunks.length) + chunks.length) % chunks.length;
+    let actualpage = index + 1
+    index = ((index % chunks.length) + chunks.length) % chunks.length;
+    if(isNaN(e[1])) txt = s.map((item, i) => `**${item.pokemon.name.replace(/-+/g, " ").replace(/\b\w/g, l => l.toUpperCase())}** ${item.pokemon.shiny ? ":star:" : ""} | Level: ${item.pokemon.level} | Number: ${item.pokemon.num} | IV: ${item.pokemon.totalIV}% Price: ${new Intl.NumberFormat('en-IN').format(item.price)} Pokecoin(s)`).slice(0, 15).join("\n")
+    
+    if(Number(args[1])){
+      if(txt == ""){
+        txt += "Nothing to show"
+      }
+      if(chunks.length == 0){
+        chunks.length = 1
+      }
+      //console.log(chunks.map(item => {item.pokemon}).join("\n"))
+      embed
+      .setTitle(`Pokelusion Market:`)
+      .setColor('#05f5fc')
+      .setDescription((chunks[index].map((item, i) =>{ return `**${item.pokemon.name.replace(/-+/g, " ").replace(/\b\w/g, l => l.toUpperCase())}** ${item.pokemon.shiny ? ":star:" : ""} | Level: ${item.pokemon.level} | Number: ${item.pokemon.num} | IV: ${item.pokemon.totalIV}% Price: ${new Intl.NumberFormat('en-IN').format(item.price)} Pokecoin(s)`}).join("\n")))
+      if(args[1] > chunks.length){
+        embed.setDescription("Nothing to show")
+      }
+      embed.setFooter(`Showing ${args[1]}-${chunks.length} of ${s.length} pokémon matching this search.`);
+      return e.channel.send(embed)
+    }
+    else{    
+      if(txt == ""){
+        txt += "Nothing to show"
+      }
+      if(chunks.length == 0){
+        chunks.length = 1
+      }
+      let embed = new Discord.MessageEmbed()
+      .setTitle(`Pokelusion market:`)
+      .setColor('#05f5fc')
+      .setDescription(txt)
+      .setFooter(`Showing 1-${chunks.length} of ${s.length} pokémon matching this search.`);
+      return e.channel.send(embed)
+    }
+    /*  
       if(message.content.includes("--mega") || message.content.includes("--mg")){
         //user.pokemons[i].shiny
         if(Number(args[1])){
@@ -783,7 +913,7 @@ module.exports = {
           return message.channel.send(embed)
         }
       }
-      
+     */ 
     }else{
       let all = await Market.find({});
       let chunks = chunk(all, 20);

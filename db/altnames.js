@@ -1080,7 +1080,7 @@ var altnames = [
     jpname: "Denryū | デンリュウ | Denryu"
   },
   {
-    name: "bellosom",
+    name: "bellossom",
     frname: "Joliflor",
     dename: "Blubella",
     jpname: "Kireihana | キレイハナ | Kireihana"

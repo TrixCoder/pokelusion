@@ -75,7 +75,7 @@ module.exports = {
     return message.channel.send(`You have no redeems to redeem pokemon.`)
     }
     
-    if(user.redeems == 0) {
+    if(user.redeems < 1) {
       return message.channel.send(`You have no redeems to redeem pokemon.`)
     }
     

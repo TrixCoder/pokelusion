@@ -32,7 +32,7 @@ module.exports = {
     await User.findOneAndUpdate({id: message.author.id}, {redeems: 0}, {  new: true })
     return message.channel.send(`You have no redeems to redeem pokemon.`)
     }
-    if(user.redeems == 0) return message.channel.send(`You have no redeems to redeem pokemon.`)
+    if(user.redeems < 1) return message.channel.send(`You have no redeems to redeem pokemon.`)
     let name = args.join("-").toLowerCase()
     if(!args[0]) return message.channel.send({embed: {description: "Provide A Pokemon Name"}})
     

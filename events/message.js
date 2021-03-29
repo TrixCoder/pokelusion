@@ -2,7 +2,7 @@ const server = require("./../models/server");
 const use = require("./../models/User");
 const Discord = require("discord.js")
 const {Collection} = require("discord.js");
-const cooldown = new Map(); //require("./../models/cooldown");
+const cooldown = new Collection();//new Set(); //require("./../models/cooldown");
 const quests = require("./../db/quest");
 const quest = require("./../models/quest");
 const { get } = require('request-promise-native')
@@ -92,9 +92,7 @@ module.exports = async (client, msg) => {
       });
       await server.save();
   }
-  
   if (!msg.guild.me.hasPermission("SEND_MESSAGES")) return;
-  if (!msg.guild.me.hasPermission("EMBED_LINKS")) return;
   const nguild = await Guild.findOne({id: msg.guild.id});
   if(nguild.prefix == null) nguild.prefix = client.config.prefix;
   await nguild.save();
@@ -105,34 +103,34 @@ module.exports = async (client, msg) => {
   if(r && msg.content.startsWith(prefix)) return client.embed(msg.channel, undefined, undefined,  ` This server has been blacklisted. Use this ${client.config.banAppeal} to appeal`, "#CB1701", undefined, {name: `Seriously Your server got banned? Great!`, av: `https://cdn.discordapp.com/attachments/720183923421872138/723143932623454219/banThor.gif`}, msg.author.avatarURL({format: "png", dynamic: true}))
   const u = await use.findOne({name: "user", userid: msg.author.id});
   if(u && msg.content.startsWith(prefix)) return client.embed(msg.channel, undefined, undefined,  ` You have been blacklisted from bot. Use this ${client.config.banAppeal} to appeal`, "#CB1701", undefined, {name: `Seriously You got banned? Great!`, av: `https://cdn.discordapp.com/attachments/720183923421872138/723143932623454219/banThor.gif`}, msg.author.avatarURL({format: "png", dynamic: true}))
-  if(msg.mentions.has(client.user) && !msg.mentions.everyone){
+  if(msg.mentions.has(client.user) && (!msg.mentions.everyone && !msg.mentions.here)){
   if(r) return;
   if(u) return;
   const embed = new MessageEmbed()
   .setAuthor("Pokelusion Tips", msg.author.displayAvatarURL())
   .setDescription(`To learn how to use the bot, please use the ${nguild.prefix}help command.`)
   .addField("Command Prefix: ", `The current prefix in this server is \`${prefix}\`.`)
-  .addField("Invite Bot: ", `**[Click Here!](https://discord.com/oauth2/authorize?client_id=552367827370377218&permissions=362560&scope=bot)**`)
-  .addField("Support Server: ", `**[Click Here!](https://discord.gg/YvKnXaA)**`)
+  .addField("Invite Bot: ", `**[Click Here!](https://discord.com/oauth2/authorize?client_id=718445589175599154&permissions=362560&scope=bot)**`)
+  .addField("Support Server: ", `**[Click Here!](https://discord.gg/afF6ut7Vte)**`)
   .setColor("#05f5fc")
     msg.channel.send(embed);
   }
-
+  
   if(msg.guild) {
+    
     if(r) return;
     if(u) return;
     await leveling(msg, client);
-    let res = spawnSchema.get(msg.channel.id)
-    if(nguild.spawnchannel) {
-       if(!client.channelCooldown.has(msg.guild.id)) {
-     await spawnBoi(client, msg);
+    let res = await spawnSchema.get(msg.channel.id)
+ 
+     if(nguild && nguild.spawnchannel && !client.channelCooldown.has(msg.guild.id)){
+      await spawnBoi(client, msg);
+    }else if(nguild && !nguild.spawnchannel && !client.channelCooldown.has(msg.channel.id)) {
+      await spawnBoi(client, msg);
     }
-    }else {
-    if(!client.channelCooldown.has(msg.channel.id)) {
-     await spawnBoi(client, msg);
-    }
-    }
+    if(!res && msg.content.startsWith(prefix+"catch")) return msg.channel.send("There is no pokemon in this channel")
       if(res) {
+      if(msg.content.endsWith(prefix+"catch")) return msg.channel.send("Please type a valid pokemon name to catch it using ``"+prefix+"catch <pokemon name>``.")
       const m = msg;
       const poke = res.pokemon
       const user = await User.findOne({id: msg.author.id});
@@ -152,8 +150,8 @@ module.exports = async (client, msg) => {
         setTimeout(() => {
           hintCooldown.delete(m.author.id)
         }, (2 * 60000));
-      }else if(msg.content.startsWith(`${prefix}catch`)) {
-        var name = msg.content.slice(`${prefix}catch`.length).trim().split(" ").join("-");
+      }else if(msg.content.startsWith(`${prefix}catch `)) {
+        var name = msg.content.slice(`${prefix}catch `.length).trim().split(" ").join("-");
         for(var i = 0;i < altnames.length;i++){
           let org = []
           altnames[i].jpname.toLowerCase().split(" | ").forEach(nm => {
@@ -256,12 +254,9 @@ module.exports = async (client, msg) => {
   }
 }
   
-  
   if(!msg.content.startsWith(prefix)) return;
   let args = msg.content.slice(prefix.length).trim().split(/ +/g);
   let cmd = args.shift().toLowerCase();
-  
-  
   let command = client.commands.get(cmd) || client.commands.get(client.aliases.get(cmd));
   
   if(!command) return;
@@ -269,17 +264,7 @@ module.exports = async (client, msg) => {
   if(msg.content.startsWith(nguild.prefix)){
     console.log(`\n\nCommand: ${msg}\nAuthor: ${msg.author.username}\nServerName: ${msg.guild.name}\nServerID: ${msg.guild.id}\n\n`)
   }
-   
-   let cooldownAmount = client.config.cooldown;
-   const expire = await cooldown.get(msg.author.id) + cooldownAmount;
-   if (expire > Date.now()) {
-    var time = await require("moment").duration(expire - Date.now(), "ms").format("d [Days], h [Hours], mm [Minutes], ss [Seconds]")
-    
-    return client.embed(msg.channel, {
-      name: ` | Please wait ${time} before using another command.`,
-      av: msg.author.avatarURL({format: "png", dynamic: true})
-    });
-   }
+  
   if(command.category == "special") {
     if(!client.config.specials.includes(msg.author.id)) return msg.channel.send(`This command is not usable for people who are not the developers of this bot.`)
   }
@@ -291,21 +276,8 @@ module.exports = async (client, msg) => {
     if(!client.config.owners.includes(msg.author.id)) return msg.channel.send(`This command is not usable for people who are not the developers of this bot because it is being tested and will be unavailable until further notice.`)
   }
   try {
-    command.run(client, msg, args, prefix);
+    command.run(client, msg, args, prefix, spawnSchema);
     
-    cooldown.set(msg.author.id, Date.now());
-    
-    setTimeout(() => {
-    cooldown.delete(msg.author.id);
-    }, client.config.cooldown)
-    /*let newDoc = new cooldown({
-        id: msg.author.id,
-        time: client.config.cooldown + Date.now()
-      });
-    if(cooldown.findOne({id: msg.author.id})) {
-      await cooldown.deleteOne({id: msg.author.id})
-    }
-      await newDoc.save().catch(console.error); */
     
   } catch(e) {
     console.error(e);
@@ -344,12 +316,12 @@ async function leveling(msg, client) {
     await User.findOneAndUpdate({id: msg.author.id}, {pokemons: nUser.pokemons}, {  new: true })
     const Embed = new Discord.MessageEmbed()
 	    .setColor('#05f5fc')
-	    .setDescription(`Congratulations ${msg.author}! Your \`${poke.name.capitalize()}\` has just leveled up to ${poke.level}`)
+	    .setDescription(`Congratulations ${msg.author}! Your \`${poke.name.replace(/-+/g, " ").replace(/\b\w/g, l => l.toUpperCase())}\` has just leveled up to ${poke.level}`)
 	    .setThumbnail(msg.author.avatarURL({dynamic: true}))
        for(var i=0;i<levelup.length;i++){
         if(poke.name.toLowerCase() == levelup[i].name.toLowerCase()){
           if(poke.level > levelup[i].levelup){
-            Embed.setDescription(`Congratulations ${msg.author}! Your \`${poke.name.capitalize()}\` has just leveled up to ${poke.level} and evolved into ${levelup[i].evo.capitalize()}`)
+            Embed.setDescription(`Congratulations ${msg.author}! Your \`${poke.name.replace(/-+/g, " ").replace(/\b\w/g, l => l.toUpperCase())}\` has just leveled up to ${poke.level} and evolved into ${levelup[i].evo.capitalize()}`)
             poke.name = levelup[i].evo.capitalize()
             poke.xp = newXp;
             nUser.pokemons[selected] = poke;
@@ -369,12 +341,16 @@ async function leveling(msg, client) {
 
 } 
 
+let spawnFunctionRun = new Set();
+
 async function spawnBoi(client, msg) {
+
   let shinyChance = 0.001;
     const randomGuess = Math.floor(Math.random() * 4);
     if(randomGuess === 2 || randomGuess === 4) {}
   else{
     const guild = await Guild.findOne({id: msg.guild.id});
+    
     if(msg.content.startsWith(guild ? guild.prefix : client.config.prefix)) return;
     const checkIfEnabled = guild ? guild.spawnbtn : true;
     if(checkIfEnabled == false) return;
@@ -382,6 +358,8 @@ async function spawnBoi(client, msg) {
     var channel = guild ? guild.spawnchannel : msg.channel.id;
     channel = await client.channels.cache.get(channel) || msg.channel;
     
+    if(spawnFunctionRun.has(msg.channel.id)) return;
+    spawnFunctionRun.add(channel.id);
 
       if(!client.channelCooldown.has(msg.channel.id)) {
     var gen = getType();
@@ -466,6 +444,9 @@ async function spawnBoi(client, msg) {
           }
         }
           const nguild = await Guild.findOne({id: msg.guild.id});
+              
+        
+            
   let imgname = "PokelusionSpawn.png"
   if(poke.url.endsWith(".gif")) imgname = "PokelusionSpawn.gif"
   const embed = new MessageEmbed()
@@ -476,29 +457,56 @@ async function spawnBoi(client, msg) {
   .setColor("#05f5fc")
   .setFooter(client.config.footer(), msg.guild.iconURL({format: "png", dynamic: true}))
   
-  if(!msg.guild.me.hasPermission(["SEND_MESSAGES", 'READ_MESSAGE_HISTORY', 'EMBED_LINKS'])) return; //spawn(poke, msg, client, name, channel);
-            
+  if(!channel.permissionsFor(client.user.id).has(["SEND_MESSAGES", 'READ_MESSAGE_HISTORY', 'EMBED_LINKS'])) return; //spawn(poke, msg, client, name, channel);
+  
 
- channel.send(embed);
-       if(guild.spawnchannel) {
+
+ let coolMsg = await channel.send(embed);
+      if(guild.spawnchannel) {
          client.channelCooldown.add(msg.guild.id);
         setTimeout(async() => {
           client.channelCooldown.delete(msg.guild.id);
-        }, 120000);
+        }, 240000);
        }else{
        client.channelCooldown.add(channel.id);
         setTimeout(async() => {
           client.channelCooldown.delete(channel.id);
-        }, 120000);
+        }, 240000);
+         embed.setColor("#05f5fc");
+         coolMsg.edit(embed);
        }
        
-        spawnSchema.set(channel.id, {
+            spawnSchema.set(channel.id, {
           pokemon: poke
-        }) 
+        });
+            
+        spawnFunctionRun.delete(msg.channel.id);
        
-                              
+           
+        
+        let colors = ['#9400D3', '#4B0082', '#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'];
+  let defaultColor = '#05f5fc';
+		const delay = ms => new Promise(res => setTimeout(res, ms));
+            
+        
+       let previousColor = null;
+       for(let i=0;i<7;i++){
+         await delay(5000);
+           let chosenColor = colors[i];
+           previousColor = chosenColor;
+           embed.setColor(chosenColor); //bot reply nhi kar rha naa he read kar rha message kya kar rha h tu?
+           coolMsg.edit(embed);
+       }
+            
+      embed.setColor(defaultColor);
+            
+      coolMsg.edit(embed);
+       
+                            
       })
         .catch(err => {
+            
+            spawnFunctionRun.delete(msg.channel.id);
           
             console.log(err);
           if(err.message.includes(`404 - "Not Found"`)) return console.log(`Unable to spawn this pokemon due to no availability of this pokemon: ${nm} in channel: ${msg.channel.name} - ${msg.channel.id}.`);
@@ -511,6 +519,14 @@ async function spawnBoi(client, msg) {
   }
 } 
 
+function getColor(colors, previousColor = null) {
+  let color = colors[Math.floor(Math.random() * colors.length)];
+  
+  if(previousColor !== null && color === previousColor) color = getColor(colors, previousColor);
+  
+  return color;
+  
+}
 
 function getType() {
    // var gen = (Math.random() * 100)

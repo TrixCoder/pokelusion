@@ -13,10 +13,10 @@ module.exports = {
     .setThumbnail(message.author.avatarURL({dynamic: true}))
     .addField(
         "🔥 Official Server Link",
-    `[Join our offcial server!](https://discord.gg/aNqdfpp)`)
+    `[Join our offcial server!](https://discord.gg/afF6ut7Vte)`)
       .addField( 
         "🔥 Bot Invite Link",
-        `[Invite our bot!](https://discord.com/api/oauth2/authorize?client_id=552367827370377218&permissions=362560&scope=bot)`
+        `[Invite our bot!](https://discord.com/api/oauth2/authorize?client_id=718445589175599154&permissions=362560&scope=bot)`
       )
     message.channel.send(EMBED)
   }

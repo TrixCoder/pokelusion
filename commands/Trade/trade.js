@@ -26,9 +26,6 @@ module.exports = {
     const userd = await User.findOne({id: user.id});
     
     if(!userd) return message.channel.send(`The user you mentioned didn't pick a starter.`);
-    if(message.content.includes(`-`)){
-      return message.reply("You can't transfer negative stuff")
-    }
     if(args[2] === "0" || args[2] === 0) return message.reply("You Cant Trade 0")
     if(cooldown.has(message.author.id)){ return message.channel.send(`You are already in a trade. Please wait for it to finish or if not please wait for a few minutes`)
     }else if(cooldown.has(user.id)) {return message.channel.send(`The user you mentioned is already in a trade or must wait for cooldown to end.`)
@@ -114,7 +111,7 @@ module.exports = {
           const num = parseInt(arg.slice(1).join(" "));
           console.log(num);
           if(isNaN(arg[1])) return msg.channel.send(`That is not a number.`);
-          if(msg.content.includes(`-`)){
+          if(arg[1].includes(`-`)){
             return msg.reply("You can't add negative coins")
           }
           if(num > userdb.balance) return msg.channel.send(`You do not have that much money.`);
@@ -164,15 +161,15 @@ module.exports = {
         const arg = msg.content.slice(`${prefix}p`.length).trim().split(/ +/g);
         if(arg[0] == "add") {
           if(isNaN(arg[1])) return msg.channel.send(`That is not a number.`);
-          if(msg.content.includes(`-`)){
-            return msg.reply("You can't add negative pokemon")
+          if(arg[1].includes(`-`)){
+            return msg.reply("You can't add negative coins")
           }
           const num = parseInt(arg[1]);
           if(!userdb.pokemons[num - 1]) return msg.channel.send(`That pokemon doesn't exist in ur list of pokemons.`);
           if(uPokemons.some(r => r.type == "p" && r.value === num)) return message.channel.send(`That is already in your trading list.`);
           embed.fields[0].name = `${message.author.username} is offering | `;
           embed.fields[1].name = `${user.username} is offering | `;
-          uPokemons.push({type: "p", value: num, name: `${(userdb.pokemons[num - 1].shiny ? "⭐" : "")} ${userdb.pokemons[num - 1].name}`});
+          uPokemons.push({type: "p", value: num, name: `${(userdb.pokemons[num - 1].shiny ? "⭐" : "")} ${userdb.pokemons[num - 1].name}`, object: userdb.pokemons[num - 1]});
           embed.fields[0].value = `\`\`\` ${uPokemons.map(r => `${parseInt(r.value)} | ${r.name}`).join("\n")} \`\`\``;
           await ms.edit(embed);
         }
@@ -276,7 +273,7 @@ module.exports = {
         const arg = msg.content.slice(`${prefix}c`.length).trim().split(/ +/g);
         if(arg[0] == "add") {
           if(isNaN(arg[1])) return msg.channel.send(`That is not a number.`);
-          if(msg.content.includes(`-`)){
+          if(arg[1].includes(`-`)){
             return msg.reply("You can't add negative coins")
           }
           const num = parseInt(arg[1]);
@@ -327,7 +324,7 @@ module.exports = {
         const arg = msg.content.slice(`${prefix}p`.length).trim().split(/ +/g);
         if(arg[0] == "add") {
           if(isNaN(arg[1])) return msg.channel.send(`That is not a number.`);
-          if(msg.content.includes(`-`)){
+          if(arg[1].includes(`-`)){
             return msg.reply("You can't add negative coins")
           }
           const num = parseInt(arg.slice(1).join(" "));
@@ -335,7 +332,7 @@ module.exports = {
           if(pPokemons.some(r => r.type == "p" && r.value === num)) return message.channel.send(`That is already in your trading list.`);
           embed.fields[0].name = `${message.author.username} is offering | `;
           embed.fields[1].name = `${user.username} is offering | `;
-          pPokemons.push({type: "p", value: num, name: `${(userd.pokemons[num - 1].shiny ? "⭐" : "")} ${userd.pokemons[num - 1].name}`});
+          pPokemons.push({type: "p", value: num, name: `${(userd.pokemons[num - 1].shiny ? "⭐" : "")} ${userd.pokemons[num - 1].name}`, object: userd.pokemons[num - 1]});
           embed.fields[1].value = `\`\`\` ${pPokemons.map(r => `${parseInt(r.value)} | ${r.name}`).join("\n")} \`\`\``;
           //await pPokemons.save();
           await ms.edit(embed);
@@ -434,11 +431,18 @@ module.exports = {
         Pcollector.stop("done traded");
         collector.stop("done traded");
         
+        let pPokemonLol = [];
         pPokemons.filter(r => r.type === "p").forEach(async (r, i) => {
-            if(!userd.pokemons[r.value - 1]) return;
+          if(!userd.pokemons[r.value - 1]) return;
             await userdb.pokemons.push(userd.pokemons[r.value - 1]);
-            await userd.pokemons.splice(r.value - 1, 1);
-            //await pPokemons.splice(i, 1);
+          
+          let index = userd.pokemons.indexOf(r.object);
+          
+          if(index < 0) return;
+          
+          
+          await userd.pokemons.splice(index, 1);
+            //await uPokemons.splice(i, 1);
         });
         
         pPokemons.forEach(async (r, i) => {
@@ -460,10 +464,19 @@ module.exports = {
           
         })
         
+        
+        let uPokemonLol = [];
+        
         uPokemons.filter(r => r.type === "p").forEach(async(r, i) => {
-          if(!userd.pokemons[r.value - 1]) return;
+          if(!userdb.pokemons[r.value - 1]) return;
             await userd.pokemons.push(userdb.pokemons[r.value - 1]);
-            await userdb.pokemons.splice(r.value - 1, 1);
+          
+           let index = userdb.pokemons.indexOf(r.object);
+          
+          if(index < 0) return;
+          
+          
+          await userdb.pokemons.splice(index, 1);
             //await uPokemons.splice(i, 1);
         });
         
@@ -486,6 +499,11 @@ module.exports = {
           
         }) 
         
+       
+
+        await userdb.markModified('pokemons');
+        
+        await userd.markModified('pokemons');
       
        cooldown.delete(message.author.id);
        cooldown.delete(user.id)

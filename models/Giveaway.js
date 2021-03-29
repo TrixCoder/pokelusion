@@ -11,7 +11,8 @@ const productSchema = mongoose.Schema({
     enabled: {type:Boolean, required:true},
     host: {type:String, required:true},
     prize: {type:String, required:true},
-    role: {type:String, required:true}
+    role: {type:String},
+    type: {type: String}
 });
 
 module.exports = mongoose.model('Giveaway', productSchema);
