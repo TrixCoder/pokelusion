@@ -29,7 +29,7 @@ module.exports = {
     const Embed = new Discord.MessageEmbed()
 	    .setColor('#05f5fc')
 	    .setTitle(`${message.author.tag}'s balance`)
-      .setDescription(`Balance: ${user.balance} Pokecoin(s) <:pokecoin:720059437468876843>`)
+      .setDescription(`Balance: ${user.balance} Pokecoin(s) <:pokecoin:793021308983050280>`)
 	    .setThumbnail(message.author.avatarURL({dynamic: true}))
       message.channel.send(Embed);    
     
