@@ -483,7 +483,7 @@ async function spawnBoi(client, msg) {
         spawnFunctionRun.delete(msg.channel.id);
        
            
-        
+        /*
         let colors = ['#9400D3', '#4B0082', '#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000'];
   let defaultColor = '#05f5fc';
 		const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -501,7 +501,7 @@ async function spawnBoi(client, msg) {
       embed.setColor(defaultColor);
             
       coolMsg.edit(embed);
-       
+       */
                             
       })
         .catch(err => {
