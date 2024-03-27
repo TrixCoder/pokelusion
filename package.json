@@ -21,7 +21,7 @@
     "dishook.js": "^1.1.2",
     "dotenv": "*",
     "enmap": "^5.3.1",
-    "express": "*",
+    "express": "4.19.2",
     "hastebin-gen": "^2.0.5",
     "memory-cache": "^0.2.0",
     "moment": "^2.26.0",
